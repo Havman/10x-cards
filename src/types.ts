@@ -583,7 +583,7 @@ export const ValidationConstraints = {
     maxCount: 100,
   },
   aiGeneration: {
-    textMinLength: 50,
+    textMinLength: 1000,
     textMaxLength: 10000,
     maxCardsMin: 1,
     maxCardsMax: 50,
