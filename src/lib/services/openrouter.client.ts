@@ -1,9 +1,45 @@
 /**
  * OpenRouter API Client
  * Handles communication with OpenRouter API for AI-powered flashcard generation
- * Currently using mock data for development
  */
 
+/**
+ * Custom error classes for OpenRouter service
+ */
+export class OpenRouterError extends Error {
+  constructor(
+    message: string,
+    public readonly statusCode: number,
+    public readonly responseBody?: string
+  ) {
+    super(message);
+    this.name = "OpenRouterError";
+  }
+}
+
+export class ParseError extends Error {
+  constructor(
+    message: string,
+    public readonly content?: string
+  ) {
+    super(message);
+    this.name = "ParseError";
+  }
+}
+
+export class ValidationError extends Error {
+  constructor(
+    message: string,
+    public readonly details?: unknown
+  ) {
+    super(message);
+    this.name = "ValidationError";
+  }
+}
+
+/**
+ * Private interfaces for OpenRouter API communication
+ */
 interface OpenRouterMessage {
   role: "system" | "user" | "assistant";
   content: string;
@@ -14,58 +50,168 @@ interface OpenRouterRequest {
   messages: OpenRouterMessage[];
   temperature?: number;
   max_tokens?: number;
+  response_format?: {
+    type: "json_schema";
+    json_schema: {
+      name: string;
+      strict: boolean;
+      schema: object;
+    };
+  };
 }
 
 interface OpenRouterResponse {
+  id: string;
+  model: string;
   choices: {
+    index: number;
     message: {
+      role: string;
       content: string;
     };
+    finish_reason: string;
   }[];
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
 }
 
+/**
+ * Public interfaces
+ */
 export interface ParsedFlashcard {
   front: string;
   back: string;
 }
 
+export interface OpenRouterOptions {
+  model?: string;
+  baseUrl?: string;
+  httpReferer?: string;
+  appTitle?: string;
+  temperature?: number;
+  maxTokens?: number;
+}
+
+export interface OpenRouterUsage {
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+  total_cost?: number;
+}
+
 export class OpenRouterClient {
   private readonly apiKey: string;
-  private readonly baseUrl = "https://openrouter.ai/api/v1";
-  // TODO: Make model configurable
-  private readonly model = "openai/gpt-3.5-turbo";
+  private readonly baseUrl: string;
+  private readonly model: string;
+  private readonly httpReferer: string;
+  private readonly appTitle: string;
+  private readonly temperature: number;
+  private readonly maxTokens: number;
 
-  constructor(apiKey: string) {
-    this.apiKey = apiKey;
+  constructor(apiKey: string, options?: OpenRouterOptions) {
+    // Validate API key
+    if (!apiKey || apiKey.trim() === "") {
+      throw new ValidationError("OpenRouter API key is required");
+    }
+
+    this.apiKey = apiKey.trim();
+
+    // Set configuration with defaults
+    this.model = options?.model || "openai/gpt-4o-mini";
+    this.baseUrl = options?.baseUrl || "https://openrouter.ai/api/v1";
+    this.httpReferer = options?.httpReferer || "https://10x-cards.app";
+    this.appTitle = options?.appTitle || "10x Cards";
+    this.temperature = options?.temperature ?? 0.7;
+    this.maxTokens = options?.maxTokens || 2000;
+
+    // Validate temperature range
+    if (this.temperature < 0.0 || this.temperature > 1.0) {
+      throw new ValidationError("Temperature must be between 0.0 and 1.0", {
+        provided: this.temperature,
+      });
+    }
+
+    // Validate max tokens
+    if (this.maxTokens <= 0) {
+      throw new ValidationError("Max tokens must be positive", {
+        provided: this.maxTokens,
+      });
+    }
   }
 
   /**
    * Generate flashcards from text using AI
-   * Currently returns mock data for development
    */
   async generateFlashcards(text: string, maxCards: number): Promise<ParsedFlashcard[]> {
-    // Build the prompt (used in production)
-    // const systemPrompt = this.buildSystemPrompt();
-    // const userPrompt = this.buildUserPrompt(text, maxCards);
+    // Input validation
+    const MIN_TEXT_LENGTH = 1000;
+    const MAX_TEXT_LENGTH = 10000;
+    const MIN_CARDS = 1;
+    const MAX_CARDS = 50;
 
-    // Mock implementation - return fake flashcards based on the text
-    // In production, this would call the actual OpenRouter API
-    return this.generateMockFlashcards(text, maxCards);
+    if (!text || text.trim().length < MIN_TEXT_LENGTH) {
+      throw new ValidationError(`Text must be at least ${MIN_TEXT_LENGTH} characters`, {
+        provided: text?.length || 0,
+        minimum: MIN_TEXT_LENGTH,
+      });
+    }
 
-    /* Production implementation would look like this:
-    const request: OpenRouterRequest = {
-      model: this.model,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      temperature: 0.7,
-      max_tokens: 2000,
-    };
+    if (text.length > MAX_TEXT_LENGTH) {
+      throw new ValidationError(`Text must not exceed ${MAX_TEXT_LENGTH} characters`, {
+        provided: text.length,
+        maximum: MAX_TEXT_LENGTH,
+      });
+    }
 
-    const response = await this.callAPI(request);
-    return this.parseResponse(response);
-    */
+    if (maxCards < MIN_CARDS || maxCards > MAX_CARDS) {
+      throw new ValidationError(`maxCards must be between ${MIN_CARDS} and ${MAX_CARDS}`, {
+        provided: maxCards,
+        minimum: MIN_CARDS,
+        maximum: MAX_CARDS,
+      });
+    }
+
+    try {
+      const sanitizedText = this.sanitizeText(text);
+      const systemPrompt = this.buildSystemPrompt();
+      const userPrompt = this.buildUserPrompt(sanitizedText, maxCards);
+      const responseSchema = this.buildResponseSchema();
+
+      const request: OpenRouterRequest = {
+        model: this.model,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        temperature: this.temperature,
+        max_tokens: this.maxTokens,
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "flashcard_generation",
+            strict: true,
+            schema: responseSchema,
+          },
+        },
+      };
+
+      const response = await this.callAPIWithRetry(request);
+      return this.parseResponse(response);
+    } catch (error) {
+      // Re-throw custom errors as-is
+      if (error instanceof OpenRouterError || error instanceof ParseError || error instanceof ValidationError) {
+        throw error;
+      }
+
+      // Wrap unexpected errors
+      throw new OpenRouterError(
+        `Unexpected error during flashcard generation: ${error instanceof Error ? error.message : "Unknown error"}`,
+        500
+      );
+    }
   }
 
   /**
@@ -81,68 +227,83 @@ Your task is to analyze the provided text and generate flashcards that:
 - Avoid ambiguity or trick questions
 - Use active recall principles
 
-Return ONLY a JSON array of flashcards in this exact format:
-[
-  {
-    "front": "Question or prompt",
-    "back": "Complete answer or explanation"
-  }
-]
-
-Do not include any other text, explanations, or formatting outside the JSON array.`;
+You must respond ONLY with valid JSON matching the provided schema.
+Do not include any explanations, comments, or text outside the JSON structure.`;
   }
 
   /**
    * Build the user prompt with the text and constraints
    */
   private buildUserPrompt(text: string, maxCards: number): string {
-    // Sanitize text to prevent prompt injection
-    const sanitizedText = this.sanitizeText(text);
+    return `Generate up to ${maxCards} flashcards from the following text. Focus on the most important concepts and information.
 
-    return `Generate up to ${maxCards} flashcards from the following text:
+Text:
+${text}`;
+  }
 
-${sanitizedText}
-
-Remember: Return ONLY the JSON array, nothing else.`;
+  /**
+   * Build JSON Schema for structured output validation
+   */
+  private buildResponseSchema(): object {
+    return {
+      type: "object",
+      properties: {
+        flashcards: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              front: {
+                type: "string",
+                description: "The question or prompt for the flashcard",
+                minLength: 1,
+                maxLength: 200,
+              },
+              back: {
+                type: "string",
+                description: "The answer or explanation for the flashcard",
+                minLength: 1,
+                maxLength: 500,
+              },
+            },
+            required: ["front", "back"],
+            additionalProperties: false,
+          },
+          minItems: 1,
+          maxItems: 50,
+        },
+      },
+      required: ["flashcards"],
+      additionalProperties: false,
+    };
   }
 
   /**
    * Sanitize text to prevent prompt injection attacks
    */
   private sanitizeText(text: string): string {
-    // Remove or escape characters that could manipulate AI behavior
-    // This is a basic implementation - can be enhanced based on testing
     return (
       text
         .trim()
-        // Remove potential system prompt injections
+        // Remove code blocks
         .replace(/```/g, "")
+        // Remove instruction markers
         .replace(/\[INST\]/gi, "")
         .replace(/\[\/INST\]/gi, "")
-        .replace(/system:/gi, "")
-        .replace(/assistant:/gi, "")
+        .replace(/<\|im_start\|>/gi, "")
+        .replace(/<\|im_end\|>/gi, "")
+        // Remove role indicators
+        .replace(/^(system|assistant|user):/gim, "")
         // Limit consecutive newlines
         .replace(/\n{3,}/g, "\n\n")
+        // Remove null bytes and control characters (except newlines and tabs)
+        // eslint-disable-next-line no-control-regex
+        .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g, "")
     );
   }
 
   /**
-   * Generate mock flashcards for development/testing
-   * This simulates what the AI would return
-   */
-  private generateMockFlashcards(text: string, maxCards: number): ParsedFlashcard[] {
-    // Extract some words from the text to make it seem contextual
-    const words = text.split(/\s+/).filter((w) => w.length > 4);
-    const uniqueWords = [...new Set(words)].slice(0, maxCards);
-
-    return uniqueWords.map((word) => ({
-      front: `What is the concept related to "${word}"?`,
-      back: `This is an AI-generated explanation about ${word}. In the context provided, ${word} represents an important concept that helps understand the subject matter.`,
-    }));
-  }
-
-  /**
-   * Call the OpenRouter API (not implemented in mock version)
+   * Call the OpenRouter API with error handling
    */
   private async callAPI(request: OpenRouterRequest): Promise<OpenRouterResponse> {
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
@@ -150,17 +311,64 @@ Remember: Return ONLY the JSON array, nothing else.`;
       headers: {
         Authorization: `Bearer ${this.apiKey}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://10x-cards.app", // Replace with actual domain
-        "X-Title": "10x Cards",
+        "HTTP-Referer": this.httpReferer,
+        "X-Title": this.appTitle,
       },
       body: JSON.stringify(request),
     });
 
     if (!response.ok) {
-      throw new Error(`OpenRouter API error: ${response.status} ${response.statusText}`);
+      const errorBody = await response.text();
+      let errorMessage = `OpenRouter API error: ${response.status}`;
+
+      try {
+        const errorJson = JSON.parse(errorBody);
+        errorMessage = errorJson.error?.message || errorMessage;
+      } catch {
+        // Keep default error message if parsing fails
+      }
+
+      throw new OpenRouterError(errorMessage, response.status, errorBody);
     }
 
     return response.json();
+  }
+
+  /**
+   * Call API with retry logic for transient failures
+   */
+  private async callAPIWithRetry(request: OpenRouterRequest, maxRetries = 3): Promise<OpenRouterResponse> {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await this.callAPI(request);
+      } catch (error) {
+        // Don't retry on last attempt
+        if (attempt === maxRetries) {
+          throw error;
+        }
+
+        // Only retry on server errors (5xx) or network timeouts
+        if (error instanceof OpenRouterError && error.statusCode >= 500) {
+          // Exponential backoff: 2^attempt * 1000ms (2s, 4s, 8s)
+          const delay = Math.pow(2, attempt) * 1000;
+          await this.sleep(delay);
+          continue;
+        }
+
+        // Don't retry client errors (4xx)
+        throw error;
+      }
+    }
+
+    // This should never be reached, but TypeScript needs it
+    throw new OpenRouterError("Max retries exceeded", 500);
+  }
+
+  /**
+   * Sleep utility for retry delays
+   */
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -170,30 +378,48 @@ Remember: Return ONLY the JSON array, nothing else.`;
     const content = response.choices[0]?.message?.content;
 
     if (!content) {
-      throw new Error("No content in AI response");
+      throw new ParseError("No content in API response");
     }
+
+    let flashcardsData: { flashcards: ParsedFlashcard[] };
 
     try {
-      // Extract JSON from the response (AI might add extra text)
-      const jsonMatch = content.match(/\[[\s\S]*\]/);
+      // Try to parse as JSON (should work with structured output)
+      flashcardsData = JSON.parse(content);
+    } catch {
+      // Fallback: Try to extract JSON object from text
+      const jsonMatch = content.match(/\{[\s\S]*"flashcards"[\s\S]*\}/);
       if (!jsonMatch) {
-        throw new Error("No JSON array found in response");
+        throw new ParseError("No valid JSON found in response", content);
       }
-
-      const flashcards = JSON.parse(jsonMatch[0]) as ParsedFlashcard[];
-
-      // Validate each flashcard
-      return flashcards.filter((card) => {
-        return (
-          card &&
-          typeof card.front === "string" &&
-          typeof card.back === "string" &&
-          card.front.length > 0 &&
-          card.back.length > 0
-        );
-      });
-    } catch (error) {
-      throw new Error(`Failed to parse AI response: ${error instanceof Error ? error.message : "Unknown error"}`);
+      try {
+        flashcardsData = JSON.parse(jsonMatch[0]);
+      } catch {
+        throw new ParseError("Failed to parse JSON from response", content);
+      }
     }
+
+    if (!Array.isArray(flashcardsData.flashcards)) {
+      throw new ParseError("Response does not contain flashcards array", content);
+    }
+
+    // Validate and filter flashcards
+    const validFlashcards = flashcardsData.flashcards.filter((card) => {
+      return (
+        card &&
+        typeof card.front === "string" &&
+        typeof card.back === "string" &&
+        card.front.trim().length > 0 &&
+        card.back.trim().length > 0 &&
+        card.front.length <= 200 &&
+        card.back.length <= 500
+      );
+    });
+
+    if (validFlashcards.length === 0) {
+      throw new ParseError("No valid flashcards found in response", content);
+    }
+
+    return validFlashcards;
   }
 }

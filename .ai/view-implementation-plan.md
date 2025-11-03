@@ -23,7 +23,7 @@ This endpoint generates flashcards from user-provided text using AI (via OpenRou
 
 | Parameter  | Type    | Required | Constraints            | Default | Description                          |
 |------------|---------|----------|------------------------|---------|--------------------------------------|
-| text       | string  | Yes      | min: 50, max: 10000    | -       | Source text for generating flashcards |
+| text       | string  | Yes      | min: 1000, max: 10000    | -       | Source text for generating flashcards |
 | deck_id    | integer | Yes      | must exist, user owned | -       | Target deck ID for generated cards    |
 | max_cards  | integer | No       | min: 1, max: 50        | 10      | Maximum number of cards to generate   |
 
@@ -39,7 +39,7 @@ Content-Type: application/json
 const AIGenerateRequestSchema = z.object({
   text: z.string()
     .min(ValidationConstraints.aiGeneration.textMinLength, 
-      "Text must be at least 50 characters long")
+      "Text must be at least 1000 characters long")
     .max(ValidationConstraints.aiGeneration.textMaxLength,
       "Text must not exceed 10000 characters"),
   deck_id: z.number().int().positive("Deck ID must be a positive integer"),
@@ -264,7 +264,7 @@ interface ParsedFlashcard {
 
 ### Input Validation & Sanitization
 - **Schema Validation:** Use Zod to validate all input parameters
-- **Text Length Limits:** Enforce min 50 chars, max 10000 chars to prevent abuse
+- **Text Length Limits:** Enforce min 1000 chars, max 10000 chars to prevent abuse
 - **Max Cards Limit:** Cap at 50 cards per request to control costs
 - **Prompt Injection Prevention:** Sanitize text input before sending to AI
   - Strip/escape special characters that could manipulate AI behavior
@@ -537,7 +537,7 @@ import { ValidationConstraints } from '@/types';
 export const AIGenerateRequestSchema = z.object({
   text: z.string()
     .min(ValidationConstraints.aiGeneration.textMinLength, {
-      message: 'Text must be at least 50 characters long'
+      message: 'Text must be at least 1000 characters long'
     })
     .max(ValidationConstraints.aiGeneration.textMaxLength, {
       message: 'Text must not exceed 10000 characters'

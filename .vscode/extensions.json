@@ -1,4 +1,14 @@
 {
-  "recommendations": ["denoland.vscode-deno"],
+  "recommendations": [
+    "denoland.vscode-deno",
+    // Astro support with syntax highlighting and formatting
+    "astro-build.astro-vscode",
+    // ESLint for TypeScript/TSX linting
+    "dbaeumer.vscode-eslint",
+    // Prettier for code formatting (supports TS, TSX, JSON, CSS, etc.)
+    "esbenp.prettier-vscode",
+    // Tailwind CSS IntelliSense
+    "bradlc.vscode-tailwindcss"
+  ],
   "unwantedRecommendations": []
 }

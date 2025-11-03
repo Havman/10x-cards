@@ -5,7 +5,6 @@
 
 import type { APIRoute } from "astro";
 import { z } from "zod";
-
 import { DEFAULT_USER_ID } from "../../../db/supabase.client";
 import { AIGenerationService, AIGenerationError } from "../../../lib/services/ai-generation.service";
 import { AIGenerateRequestSchema } from "../../../lib/validation/ai-generation.schemas";
@@ -26,6 +25,25 @@ export const POST: APIRoute = async ({ request, locals }) => {
           error: {
             code: ErrorCodes.INTERNAL_ERROR,
             message: "Database client not available",
+          },
+        } satisfies ApiErrorResponse),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Get OpenRouter API key from environment
+    const openRouterApiKey = import.meta.env.OPENROUTER_API_KEY;
+
+    if (!openRouterApiKey) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: {
+            code: ErrorCodes.INTERNAL_ERROR,
+            message: "AI service not configured",
           },
         } satisfies ApiErrorResponse),
         {
@@ -82,10 +100,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
     // Use DEFAULT_USER_ID until authentication is implemented
     const userId = DEFAULT_USER_ID;
 
-    // Create service instance
-    const aiService = new AIGenerationService(supabase, userId);
+    // Initialize AI Generation Service with real API key
+    const aiService = new AIGenerationService(supabase, userId, openRouterApiKey);
 
-    // Generate and save flashcards
+    // Generate and save flashcards using AI
     const result: AIGenerateResponse = await aiService.generateAndSaveFlashcards(deck_id, text, max_cards);
 
     // Return success response

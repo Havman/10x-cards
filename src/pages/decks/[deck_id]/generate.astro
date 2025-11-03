@@ -1,0 +1,49 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import AIGenerationForm from "../../../components/ai/AIGenerationForm";
+
+export const prerender = false;
+
+// Extract deck_id from URL params
+const { deck_id } = Astro.params;
+
+// Validate deck_id
+const deckId = parseInt(deck_id || "");
+if (isNaN(deckId) || deckId <= 0) {
+  return Astro.redirect("/decks");
+}
+
+// TODO: Fetch deck name for breadcrumb
+const deckName = "Deck Name";
+---
+
+<Layout title="Generate Flashcards">
+  <div class="container mx-auto px-4 py-8">
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm" aria-label="Breadcrumb">
+      <ol class="flex items-center gap-2 text-muted-foreground">
+        <li>
+          <a href="/decks" class="hover:text-foreground transition-colors"> Decks </a>
+        </li>
+        <li aria-hidden="true">/</li>
+        <li>
+          <a href={`/decks/${deckId}`} class="hover:text-foreground transition-colors">
+            {deckName}
+          </a>
+        </li>
+        <li aria-hidden="true">/</li>
+        <li class="text-foreground font-medium" aria-current="page">Generate</li>
+      </ol>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl">
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold tracking-tight mb-2">Generate Flashcards with AI</h1>
+        <p class="text-muted-foreground">Paste your text below and let AI create flashcards for you automatically.</p>
+      </div>
+
+      <AIGenerationForm client:load deckId={deckId} />
+    </div>
+  </div>
+</Layout>

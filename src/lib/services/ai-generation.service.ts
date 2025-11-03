@@ -32,10 +32,10 @@ export class AIGenerationService {
 
   constructor(
     private readonly supabase: SupabaseClient,
-    private readonly userId: string
+    private readonly userId: string,
+    openRouterApiKey: string
   ) {
-    // Using mock implementation - no API key needed
-    this.openRouterClient = new OpenRouterClient("mock-api-key");
+    this.openRouterClient = new OpenRouterClient(openRouterApiKey);
   }
 
   /**
