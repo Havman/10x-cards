@@ -1,0 +1,72 @@
+---
+/**
+ * Dashboard Page
+ * Route: /dashboard
+ * Purpose: Main landing page after authentication
+ * Displays user's decks list (US-006)
+ */
+
+import Layout from "@/layouts/Layout.astro";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+// Disable prerendering for authenticated pages
+export const prerender = false;
+
+// Get authenticated user from middleware
+const user = Astro.locals.user;
+
+// This page requires authentication (middleware handles redirect)
+if (!user) {
+  return Astro.redirect("/auth/login");
+}
+
+// TODO: Fetch user's decks from database
+// const supabase = Astro.locals.supabase;
+// const { data: decks } = await supabase
+//   .from('decks')
+//   .select('*')
+//   .eq('user_id', user.id)
+//   .order('created_at', { ascending: false });
+---
+
+<Layout title="Dashboard">
+  <div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold mb-2">Welcome back!</h1>
+      <p class="text-muted-foreground">
+        {user.email ? `Logged in as ${user.email}` : "Your dashboard"}
+      </p>
+    </div>
+
+    <div class="grid gap-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Your Decks</CardTitle>
+          <CardDescription> Manage your flashcard decks and start studying </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p class="text-muted-foreground">
+            Your decks will appear here. This is a placeholder for the deck management feature.
+          </p>
+          <div class="mt-4">
+            <p class="text-sm text-muted-foreground">Coming soon: Create, view, and manage your flashcard decks</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+          <CardDescription>Get started with your flashcards</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div class="grid gap-2">
+            <p class="text-muted-foreground">• Create your first deck</p>
+            <p class="text-muted-foreground">• Generate AI flashcards</p>
+            <p class="text-muted-foreground">• Start studying</p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  </div>
+</Layout>

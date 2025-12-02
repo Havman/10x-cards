@@ -1,0 +1,201 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Fluent UI 2 - Border Radius (4px base unit) */
+  --radius: 0.25rem;
+  
+  /* Fluent UI 2 - Light Mode Base Colors */
+  --background: oklch(0.98 0.002 264); /* Neutral Gray 10 - off-white for reduced eye strain */
+  --foreground: oklch(0.20 0.003 264); /* Neutral Gray 160 - high contrast text */
+  --card: oklch(0.99 0.001 264); /* Neutral Gray 4 - elevated surface */
+  --card-foreground: oklch(0.20 0.003 264);
+  --popover: oklch(0.99 0.001 264);
+  --popover-foreground: oklch(0.20 0.003 264);
+  
+  /* Fluent UI 2 - Primary (Signature Blue) */
+  --primary: oklch(0.47 0.157 264.5); /* #0078D4 - Fluent Blue */
+  --primary-foreground: oklch(1 0 0); /* White text on blue */
+  
+  /* Fluent UI 2 - Secondary (Neutral) */
+  --secondary: oklch(0.94 0.003 264); /* Neutral Gray 24 */
+  --secondary-foreground: oklch(0.20 0.003 264);
+  
+  /* Fluent UI 2 - Muted */
+  --muted: oklch(0.96 0.002 264); /* Neutral Gray 14 */
+  --muted-foreground: oklch(0.46 0.004 264); /* Neutral Gray 100 */
+  
+  /* Fluent UI 2 - Accent */
+  --accent: oklch(0.94 0.003 264); /* Neutral Gray 24 */
+  --accent-foreground: oklch(0.47 0.157 264.5); /* Fluent Blue */
+  
+  /* Fluent UI 2 - Semantic Colors */
+  --destructive: oklch(0.52 0.22 25); /* Red #D13438 */
+  --success: oklch(0.55 0.15 145); /* Green #107C10 */
+  --warning: oklch(0.70 0.14 85); /* Orange #FFA500 */
+  --info: oklch(0.47 0.157 264.5); /* Blue #0078D4 */
+  
+  /* Fluent UI 2 - Borders & Inputs */
+  --border: oklch(0.88 0.004 264); /* Neutral Gray 30 - softer borders */
+  --input: oklch(0.88 0.004 264);
+  --ring: oklch(0.47 0.157 264.5); /* Focus ring matches primary */
+  
+  /* Fluent UI 2 - Focus Indicators */
+  --focus-stroke-outer: oklch(1 0 0); /* White outer ring */
+  --focus-stroke-inner: oklch(0.20 0.003 264); /* Dark inner ring */
+  
+  /* Fluent UI 2 - Elevation Shadows */
+  --elevation-shadow-2: 0 0.5px 1.5px rgb(0 0 0 / 6%), 0 0.5px 1px rgb(0 0 0 / 4%);
+  --elevation-shadow-4: 0 1px 2.5px rgb(0 0 0 / 8%), 0 0.5px 2px rgb(0 0 0 / 5%);
+  --elevation-shadow-8: 0 2px 5px rgb(0 0 0 / 10%), 0 1px 4px rgb(0 0 0 / 6%);
+  --elevation-shadow-16: 0 4px 10px rgb(0 0 0 / 12%), 0 2px 8px rgb(0 0 0 / 8%);
+  --elevation-shadow-64: 0 16px 40px rgb(0 0 0 / 16%), 0 8px 32px rgb(0 0 0 / 12%);
+  
+  /* Fluent UI 2 - Motion Tokens */
+  --duration-ultra-fast: 50ms;
+  --duration-fast: 100ms;
+  --duration-normal: 200ms;
+  --duration-slow: 400ms;
+  --easing-standard: cubic-bezier(0.33, 0, 0.67, 1);
+  --easing-decelerate: cubic-bezier(0, 0, 0, 1);
+  --easing-accelerate: cubic-bezier(1, 0, 1, 1);
+  
+  /* Chart Colors (Updated for Fluent palette) */
+  --chart-1: oklch(0.47 0.157 264.5); /* Fluent Blue */
+  --chart-2: oklch(0.55 0.15 145); /* Fluent Green */
+  --chart-3: oklch(0.52 0.22 25); /* Fluent Red */
+  --chart-4: oklch(0.70 0.14 85); /* Fluent Orange */
+  --chart-5: oklch(0.60 0.18 305); /* Fluent Purple */
+  
+  /* Sidebar Colors */
+  --sidebar: oklch(0.98 0.002 264);
+  --sidebar-foreground: oklch(0.20 0.003 264);
+  --sidebar-primary: oklch(0.47 0.157 264.5);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.94 0.003 264);
+  --sidebar-accent-foreground: oklch(0.20 0.003 264);
+  --sidebar-border: oklch(0.88 0.004 264);
+  --sidebar-ring: oklch(0.47 0.157 264.5);
+}
+
+
+.dark {
+  /* Fluent UI 2 - Dark Mode Base Colors */
+  --background: oklch(0.16 0.003 264); /* Neutral Gray 150 - warm dark canvas */
+  --foreground: oklch(0.96 0.002 264); /* Neutral Gray 14 - optimized contrast */
+  --card: oklch(0.20 0.004 264); /* Neutral Gray 130 - elevated surface */
+  --card-foreground: oklch(0.96 0.002 264);
+  --popover: oklch(0.20 0.004 264);
+  --popover-foreground: oklch(0.96 0.002 264);
+  
+  /* Fluent UI 2 - Primary (Accessible Blue for Dark Mode) */
+  --primary: oklch(0.63 0.157 264.5); /* #4CC2FF - lighter blue for accessibility */
+  --primary-foreground: oklch(0.16 0.003 264); /* Dark text on light blue */
+  
+  /* Fluent UI 2 - Secondary (Dark Neutral) */
+  --secondary: oklch(0.25 0.004 264); /* Darker neutral */
+  --secondary-foreground: oklch(0.96 0.002 264);
+  
+  /* Fluent UI 2 - Muted */
+  --muted: oklch(0.25 0.004 264);
+  --muted-foreground: oklch(0.68 0.003 264); /* Neutral Gray 68 */
+  
+  /* Fluent UI 2 - Accent */
+  --accent: oklch(0.25 0.004 264);
+  --accent-foreground: oklch(0.63 0.157 264.5); /* Light blue accent */
+  
+  /* Fluent UI 2 - Semantic Colors (Dark Mode) */
+  --destructive: oklch(0.65 0.22 25); /* Lighter red for dark mode */
+  --success: oklch(0.65 0.15 145); /* Lighter green for dark mode */
+  --warning: oklch(0.75 0.14 85); /* Lighter orange for dark mode */
+  --info: oklch(0.63 0.157 264.5); /* Light blue */
+  
+  /* Fluent UI 2 - Borders & Inputs (Dark Mode) */
+  --border: oklch(1 0 0 / 12%); /* Slightly more visible than original */
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.63 0.157 264.5); /* Focus ring matches primary */
+  
+  /* Fluent UI 2 - Focus Indicators (Dark Mode) */
+  --focus-stroke-outer: oklch(0.16 0.003 264); /* Dark outer ring */
+  --focus-stroke-inner: oklch(1 0 0); /* White inner ring */
+  
+  /* Fluent UI 2 - Elevation Shadows (Dark Mode - more subtle) */
+  --elevation-shadow-2: 0 0.5px 1.5px rgb(0 0 0 / 18%), 0 0.5px 1px rgb(0 0 0 / 12%);
+  --elevation-shadow-4: 0 1px 2.5px rgb(0 0 0 / 24%), 0 0.5px 2px rgb(0 0 0 / 15%);
+  --elevation-shadow-8: 0 2px 5px rgb(0 0 0 / 30%), 0 1px 4px rgb(0 0 0 / 18%);
+  --elevation-shadow-16: 0 4px 10px rgb(0 0 0 / 36%), 0 2px 8px rgb(0 0 0 / 24%);
+  --elevation-shadow-64: 0 16px 40px rgb(0 0 0 / 48%), 0 8px 32px rgb(0 0 0 / 36%);
+  
+  /* Chart Colors (Dark Mode - adjusted for visibility) */
+  --chart-1: oklch(0.63 0.157 264.5); /* Light Blue */
+  --chart-2: oklch(0.65 0.15 145); /* Light Green */
+  --chart-3: oklch(0.65 0.22 25); /* Light Red */
+  --chart-4: oklch(0.75 0.14 85); /* Light Orange */
+  --chart-5: oklch(0.70 0.18 305); /* Light Purple */
+  
+  /* Sidebar Colors (Dark Mode) */
+  --sidebar: oklch(0.20 0.004 264);
+  --sidebar-foreground: oklch(0.96 0.002 264);
+  --sidebar-primary: oklch(0.63 0.157 264.5);
+  --sidebar-primary-foreground: oklch(0.96 0.002 264);
+  --sidebar-accent: oklch(0.25 0.004 264);
+  --sidebar-accent-foreground: oklch(0.96 0.002 264);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: oklch(0.63 0.157 264.5);
+}
+
+@theme inline {
+  /* Fluent UI 2 - Border Radius Scale */
+  --radius-sm: 0.125rem; /* 2px - minimal rounding */
+  --radius-md: 0.25rem; /* 4px - standard controls */
+  --radius-lg: 0.5rem; /* 8px - cards, dialogs */
+  --radius-xl: 0.75rem; /* 12px - large containers */
+  --radius-circular: 9999px; /* Pills, avatars */
+  
+  /* Color mappings for Tailwind */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

@@ -1,0 +1,28 @@
+---
+/**
+ * Login Page
+ * Route: /auth/login
+ * Purpose: US-002 - User Login
+ */
+
+import AuthLayout from "@/layouts/AuthLayout.astro";
+import LoginForm from "@/components/auth/LoginForm";
+
+// Disable prerendering for authentication pages
+export const prerender = false;
+
+// Get redirect parameter from query string
+const redirectTo = Astro.url.searchParams.get("redirect") || "/dashboard";
+
+// Check if user is already authenticated
+const user = Astro.locals.user;
+
+// Redirect to dashboard if already logged in
+if (user) {
+  return Astro.redirect(redirectTo);
+}
+---
+
+<AuthLayout title="Welcome Back" description="Log in to your account">
+  <LoginForm redirectTo={redirectTo} client:load />
+</AuthLayout>
