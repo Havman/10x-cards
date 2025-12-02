@@ -1,0 +1,30 @@
+---
+/**
+ * AuthLayout Component
+ * Specialized layout for authentication pages with centered card design
+ */
+
+import Layout from "./Layout.astro";
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<Layout title={title} showNavigation={false}>
+  <div
+    class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted/20"
+  >
+    <div class="w-full max-w-md">
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold tracking-tight mb-2">{title}</h1>
+        <p class="text-muted-foreground">{description}</p>
+      </div>
+
+      <slot />
+    </div>
+  </div>
+</Layout>

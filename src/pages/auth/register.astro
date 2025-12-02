@@ -1,0 +1,28 @@
+---
+/**
+ * Registration Page
+ * Route: /auth/register
+ * Purpose: US-001 - New User Registration
+ */
+
+import AuthLayout from "@/layouts/AuthLayout.astro";
+import RegisterForm from "@/components/auth/RegisterForm";
+
+// Disable prerendering for authentication pages
+export const prerender = false;
+
+// Get redirect parameter from query string
+const redirectTo = Astro.url.searchParams.get("redirect") || "/dashboard";
+
+// Check if user is already authenticated
+const user = Astro.locals.user;
+
+// Redirect to dashboard if already logged in
+if (user) {
+  return Astro.redirect(redirectTo);
+}
+---
+
+<AuthLayout title="Create Account" description="Sign up to start creating flashcards with AI">
+  <RegisterForm redirectTo={redirectTo} client:load />
+</AuthLayout>
