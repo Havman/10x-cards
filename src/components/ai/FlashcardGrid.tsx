@@ -196,7 +196,7 @@ export default function FlashcardGrid({ flashcards, deckId, onCardsChange }: Fla
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-test-id="flashcard-grid">
       {/* Error Alert */}
       {error && (
         <Alert variant="destructive">
@@ -206,7 +206,7 @@ export default function FlashcardGrid({ flashcards, deckId, onCardsChange }: Fla
       )}
 
       {/* Bulk Actions */}
-      <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+      <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg" data-test-id="bulk-actions-bar">
         <div className="flex items-center gap-2">
           <input
             type="checkbox"
@@ -214,6 +214,7 @@ export default function FlashcardGrid({ flashcards, deckId, onCardsChange }: Fla
             onChange={toggleSelectAll}
             className="h-4 w-4 rounded border-gray-300"
             aria-label="Select all flashcards"
+            data-test-id="select-all-checkbox"
           />
           <span className="text-sm font-medium">
             {selectedIds.size > 0 ? `${selectedIds.size} selected` : "Select all"}
@@ -222,10 +223,22 @@ export default function FlashcardGrid({ flashcards, deckId, onCardsChange }: Fla
 
         {selectedIds.size > 0 && (
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handleBulkAccept} disabled={savingIds.size > 0}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleBulkAccept}
+              disabled={savingIds.size > 0}
+              data-test-id="bulk-accept-button"
+            >
               {savingIds.size > 0 ? "Saving..." : `Accept Selected (${selectedIds.size})`}
             </Button>
-            <Button variant="destructive" size="sm" onClick={handleBulkReject} disabled={savingIds.size > 0}>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleBulkReject}
+              disabled={savingIds.size > 0}
+              data-test-id="bulk-reject-button"
+            >
               Reject Selected ({selectedIds.size})
             </Button>
           </div>
@@ -233,12 +246,12 @@ export default function FlashcardGrid({ flashcards, deckId, onCardsChange }: Fla
       </div>
 
       {/* Flashcards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" data-test-id="flashcards-grid-container">
         {cards.map((card) => {
           const isEditing = editingId === card.id;
 
           return (
-            <Card key={card.id} className="relative">
+            <Card key={card.id} className="relative" data-test-id={`flashcard-item-${card.id}`}>
               <CardContent className="p-4">
                 {/* Selection Checkbox */}
                 <div className="absolute top-2 left-2">
@@ -248,6 +261,7 @@ export default function FlashcardGrid({ flashcards, deckId, onCardsChange }: Fla
                     onChange={() => toggleSelection(card.id)}
                     className="h-4 w-4 rounded border-gray-300"
                     aria-label={`Select flashcard ${card.id}`}
+                    data-test-id={`flashcard-checkbox-${card.id}`}
                     disabled={isEditing}
                   />
                 </div>
@@ -263,6 +277,7 @@ export default function FlashcardGrid({ flashcards, deckId, onCardsChange }: Fla
                         value={editedFront}
                         onChange={(e) => setEditedFront(e.target.value)}
                         className="min-h-[80px]"
+                        data-test-id={`flashcard-front-edit-${card.id}`}
                       />
                     </div>
 
@@ -274,6 +289,7 @@ export default function FlashcardGrid({ flashcards, deckId, onCardsChange }: Fla
                         value={editedBack}
                         onChange={(e) => setEditedBack(e.target.value)}
                         className="min-h-[80px]"
+                        data-test-id={`flashcard-back-edit-${card.id}`}
                       />
                     </div>
                   </div>
@@ -282,13 +298,17 @@ export default function FlashcardGrid({ flashcards, deckId, onCardsChange }: Fla
                     {/* Front */}
                     <div className="space-y-1">
                       <div className="text-xs font-semibold text-muted-foreground uppercase">Front</div>
-                      <p className="text-sm">{card.front}</p>
+                      <p className="text-sm" data-test-id={`flashcard-front-${card.id}`}>
+                        {card.front}
+                      </p>
                     </div>
 
                     {/* Back */}
                     <div className="space-y-1">
                       <div className="text-xs font-semibold text-muted-foreground uppercase">Back</div>
-                      <p className="text-sm">{card.back}</p>
+                      <p className="text-sm" data-test-id={`flashcard-back-${card.id}`}>
+                        {card.back}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -297,10 +317,22 @@ export default function FlashcardGrid({ flashcards, deckId, onCardsChange }: Fla
                 <div className="flex gap-2 mt-4 pt-4 border-t">
                   {isEditing ? (
                     <>
-                      <Button variant="outline" size="sm" className="flex-1" onClick={handleCancelEdit}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={handleCancelEdit}
+                        data-test-id={`flashcard-cancel-edit-${card.id}`}
+                      >
                         Cancel
                       </Button>
-                      <Button variant="default" size="sm" className="flex-1" onClick={handleSaveEdit}>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="flex-1"
+                        onClick={handleSaveEdit}
+                        data-test-id={`flashcard-save-edit-${card.id}`}
+                      >
                         Save
                       </Button>
                     </>
@@ -312,6 +344,7 @@ export default function FlashcardGrid({ flashcards, deckId, onCardsChange }: Fla
                         className="flex-1"
                         onClick={() => handleEdit(card.id)}
                         disabled={savingIds.has(card.id)}
+                        data-test-id={`flashcard-edit-${card.id}`}
                       >
                         Edit
                       </Button>
@@ -321,6 +354,7 @@ export default function FlashcardGrid({ flashcards, deckId, onCardsChange }: Fla
                         className="flex-1"
                         onClick={() => handleAccept(card.id)}
                         disabled={savingIds.has(card.id)}
+                        data-test-id={`flashcard-accept-${card.id}`}
                       >
                         {savingIds.has(card.id) ? "Saving..." : "Accept"}
                       </Button>
@@ -330,6 +364,7 @@ export default function FlashcardGrid({ flashcards, deckId, onCardsChange }: Fla
                         className="flex-1"
                         onClick={() => handleReject(card.id)}
                         disabled={savingIds.has(card.id)}
+                        data-test-id={`flashcard-reject-${card.id}`}
                       >
                         Reject
                       </Button>

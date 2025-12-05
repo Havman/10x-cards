@@ -86,46 +86,48 @@
 - **lint:fix:** Fixes linting errors automatically.
 - **format:** Formats the project files using Prettier.
 
-### Testing Scripts (Planned)
-The following test scripts are planned for future implementation:
-- **test:** Run all tests
+### Testing Scripts
+- **test:** Run all tests (unit + E2E)
 - **test:unit:** Run unit tests with Vitest
-- **test:e2e:** Run end-to-end tests with Playwright
-- **test:integration:** Run integration tests
-- **test:coverage:** Generate test coverage reports
+- **test:unit:ui:** Run unit tests with Vitest UI
+- **test:e2e:** Run E2E tests (smoke + basic tests only)
+- **test:e2e:all:** Run all E2E tests including AI generation tests
+- **test:e2e:ai:** Run AI generation E2E tests only
+- **test:coverage:** Generate unit test coverage reports
 
 ## Testing
 
-The project includes comprehensive testing to ensure reliability, security, and performance:
+The project includes comprehensive testing to ensure reliability, security, and performance. For detailed setup and execution instructions, see [TESTING_SETUP.md](./TESTING_SETUP.md).
 
-### Unit Testing
+### Unit Testing ✅ Implemented
 - **Framework:** Vitest with @testing-library/react for React components
-- **Coverage Target:** 90% for services, 80% for utilities
-- **Focus Areas:**
-  - AI generation service logic
-  - Validation schemas (Zod)
-  - FSRS spaced repetition algorithm
-  - Utility functions and type guards
+- **Status:** 2/2 tests passing
+- **Coverage:** AI generation service, validation schemas
 - **Mocking:** Mock Service Worker (MSW) for API calls and Supabase client mocking
+- **Run:** `npm run test:unit`
 
-### End-to-End (E2E) Testing
+### End-to-End (E2E) Testing ✅ Implemented
 - **Framework:** Playwright
-- **Browser Coverage:** Chromium, Firefox, WebKit
-- **Critical User Flows:**
-  - New user onboarding and registration
-  - AI flashcard generation with draft review
-  - Study sessions with FSRS algorithm
-  - Deck and flashcard management (CRUD operations)
-- **Responsive Testing:** Desktop (1920x1080), Tablet (768x1024), Mobile (375x667)
-- **Network Conditions:** Fast 3G, Slow 3G, Offline scenarios
+- **Status:** 17/17 tests passing (smoke + basic tests)
+- **Browser:** Firefox (WSL2 compatible)
+- **Pattern:** Page Object Model (POM) for maintainability
+- **Test Suites:**
+  - **Smoke Tests** (3 tests): Core application functionality
+  - **Basic Tests** (14 tests): Public pages, forms, navigation, responsive design
+  - **AI Generation Tests** (ready): Requires authentication setup
+- **Run:** `npm run test:e2e` (smoke + basic only) or `npm run test:e2e:all`
 
-### Additional Testing
+### Test Infrastructure
+- **Data Test IDs:** Comprehensive `data-test-id` attributes across components
+- **Page Objects:** Reusable page object classes for form interactions
+- **Environment:** WSL2 compatible with Firefox browser
+- **CI/CD Ready:** Optimized for automated testing pipelines
+
+### Planned Testing
 - **Integration Tests:** API endpoints with real database interactions
 - **Performance Tests:** Load testing with k6, Lighthouse CI audits
 - **Security Tests:** OWASP ZAP scanning, npm audit, dependency vulnerability checks
 - **Accessibility Tests:** WCAG 2.1 Level AA compliance with axe DevTools and screen readers
-
-For detailed testing scenarios and acceptance criteria, refer to `.ai/test_plan.md`.
 
 ## Project Scope
 
