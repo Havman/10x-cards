@@ -154,6 +154,7 @@ export default function AIGenerationForm({ deckId }: AIGenerationFormProps) {
               <Label htmlFor="text">Text to Convert</Label>
               <Textarea
                 id="text"
+                data-test-id="ai-text-input"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder="Paste your text here (minimum 1000 characters)..."
@@ -181,6 +182,7 @@ export default function AIGenerationForm({ deckId }: AIGenerationFormProps) {
               <Input
                 type="number"
                 id="maxCards"
+                data-test-id="ai-max-cards-input"
                 value={maxCardsInput}
                 onChange={(e) => {
                   const value = e.target.value;
@@ -222,7 +224,7 @@ export default function AIGenerationForm({ deckId }: AIGenerationFormProps) {
             )}
 
             {/* Submit Button */}
-            <Button type="submit" disabled={!canSubmit} className="w-full" size="lg">
+            <Button type="submit" disabled={!canSubmit} className="w-full" size="lg" data-test-id="ai-generate-button">
               {isLoading ? (
                 <>
                   <span className="mr-2">⏳</span>
@@ -238,7 +240,7 @@ export default function AIGenerationForm({ deckId }: AIGenerationFormProps) {
 
       {/* Generated Flashcards Display */}
       {generatedCards && (
-        <div id="generated-cards" className="mt-8">
+        <div id="generated-cards" className="mt-8" data-test-id="generated-cards-container">
           <h2 className="text-2xl font-bold mb-4">Generated Flashcards ({generatedCards.cards_generated})</h2>
           <FlashcardGrid flashcards={generatedCards.flashcards} deckId={deckId} />
         </div>

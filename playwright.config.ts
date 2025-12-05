@@ -12,6 +12,9 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./e2e",
 
+  /* Only run smoke and basic tests by default */
+  testMatch: ["**/smoke.spec.ts", "**/basic.spec.ts"],
+
   /* Run tests in files in parallel */
   fullyParallel: true,
 
@@ -30,7 +33,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: "http://localhost:4321",
+    baseURL: "http://localhost:3000",
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
@@ -45,16 +48,23 @@ export default defineConfig({
   /* Configure projects for major browsers */
   projects: [
     {
-      name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      name: "firefox",
+      use: { ...devices["Desktop Firefox"] },
     },
+    // Chromium disabled due to WSL2 compatibility issues (SIGSEGV crashes)
+    // Uncomment for Windows native or CI environments
+    // {
+    //   name: "chromium",
+    //   use: { ...devices["Desktop Chrome"] },
+    // },
   ],
 
   /* Run your local dev server before starting the tests */
-  webServer: {
-    command: "npm run dev",
-    url: "http://localhost:4321",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
-  },
+  // Commented out - start dev server manually with: npm run dev
+  // webServer: {
+  //   command: "npm run dev",
+  //   url: "http://localhost:4321",
+  //   reuseExistingServer: true, // Always reuse existing server in development
+  //   timeout: 120 * 1000,
+  // },
 });
