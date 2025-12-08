@@ -61,10 +61,18 @@ export default tseslint.config(
   baseConfig,
   jsxA11yConfig,
   reactConfig,
-  ...eslintPluginAstro.configs["flat/recommended"],
   // Apply Prettier to non-Astro files only
   {
     ...eslintPluginPrettier,
     files: ["**/*.{js,jsx,ts,tsx,mjs,cjs}"],
+  },
+  // Add Astro configs after Prettier to override any inherited rules
+  ...eslintPluginAstro.configs["flat/recommended"],
+  // Explicitly disable Prettier for Astro files
+  {
+    files: ["**/*.astro"],
+    rules: {
+      "prettier/prettier": "off",
+    },
   }
 );
