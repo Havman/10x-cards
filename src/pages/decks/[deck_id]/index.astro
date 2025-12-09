@@ -1,0 +1,144 @@
+---
+/**
+ * Deck Detail Page
+ * Route: /decks/[deck_id]
+ * Purpose: Display deck details and flashcards
+ */
+
+import Layout from "@/layouts/Layout.astro";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+// Disable prerendering for authenticated pages
+export const prerender = false;
+
+// Get authenticated user from middleware
+const user = Astro.locals.user;
+
+// This page requires authentication
+if (!user) {
+  return Astro.redirect("/auth/login");
+}
+
+// Extract deck_id from URL params
+const { deck_id } = Astro.params;
+
+// Validate deck_id
+const deckId = parseInt(deck_id || "");
+if (isNaN(deckId) || deckId <= 0) {
+  return Astro.redirect("/decks");
+}
+
+// Fetch deck details
+const supabase = Astro.locals.supabase;
+const { data: deck } = await supabase.from("decks").select("*").eq("id", deckId).eq("user_id", user.id).single();
+
+// If deck doesn't exist or doesn't belong to user, redirect
+if (!deck) {
+  return Astro.redirect("/decks");
+}
+
+// Fetch flashcards for this deck
+const { data: flashcards } = await supabase
+  .from("flashcards")
+  .select("*")
+  .eq("deck_id", deckId)
+  .order("created_at", { ascending: false });
+
+const cards = flashcards || [];
+---
+
+<Layout title={deck.name}>
+  <div class="container mx-auto px-4 py-8">
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm" aria-label="Breadcrumb">
+      <ol class="flex items-center gap-2 text-muted-foreground">
+        <li>
+          <a href="/decks" class="hover:text-foreground transition-colors">Decks</a>
+        </li>
+        <li aria-hidden="true">/</li>
+        <li class="text-foreground font-medium" aria-current="page">{deck.name}</li>
+      </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="mb-8 flex items-center justify-between">
+      <div>
+        <h1 class="text-4xl font-bold mb-2">{deck.name}</h1>
+        <p class="text-muted-foreground">
+          {cards.length}
+          {cards.length === 1 ? "card" : "cards"}
+        </p>
+      </div>
+      <div class="flex gap-2">
+        <Button variant="outline">
+          <a href={`/decks/${deckId}/study`}>Study</a>
+        </Button>
+        <Button>
+          <a href={`/decks/${deckId}/generate`}>Generate Cards</a>
+        </Button>
+      </div>
+    </div>
+
+    <!-- Flashcards List -->
+    {
+      cards.length > 0 ? (
+        <div class="grid gap-4">
+          {cards.map((card) => (
+            <Card>
+              <CardHeader>
+                <div class="flex items-start justify-between">
+                  <div class="flex-1">
+                    <CardTitle className="text-lg">{card.front}</CardTitle>
+                    <CardDescription className="mt-2">{card.back}</CardDescription>
+                  </div>
+                  <div class="flex gap-2 ml-4">
+                    <span
+                      class={`px-2 py-1 text-xs rounded-full ${
+                        card.status === "new"
+                          ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                          : card.status === "draft"
+                            ? "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
+                            : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                      }`}
+                    >
+                      {card.status}
+                    </span>
+                    <span
+                      class={`px-2 py-1 text-xs rounded-full ${
+                        card.source === "ai"
+                          ? "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+                          : "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
+                      }`}
+                    >
+                      {card.source}
+                    </span>
+                  </div>
+                </div>
+              </CardHeader>
+              {card.next_review_date && (
+                <CardContent>
+                  <p class="text-sm text-muted-foreground">
+                    Next review: {new Date(card.next_review_date).toLocaleDateString()}
+                  </p>
+                </CardContent>
+              )}
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>No Cards Yet</CardTitle>
+            <CardDescription>This deck is empty. Generate some flashcards to get started!</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button>
+              <a href={`/decks/${deckId}/generate`}>Generate Flashcards with AI</a>
+            </Button>
+          </CardContent>
+        </Card>
+      )
+    }
+  </div>
+</Layout>

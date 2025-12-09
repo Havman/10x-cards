@@ -5,7 +5,7 @@
 
 import type { APIRoute } from "astro";
 import { z } from "zod";
-import { supabaseAdmin, DEFAULT_USER_ID } from "@/db/supabase.client";
+import { supabaseAdmin } from "@/db/supabase.client";
 import type { ApiSuccessResponse, ApiErrorResponse } from "@/types";
 
 // Request validation schema
@@ -20,8 +20,25 @@ interface CreateFlashcardResponse {
   flashcard_id: number;
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   try {
+    // Get authenticated user from middleware
+    const user = locals.user;
+
+    if (!user) {
+      const response: ApiErrorResponse = {
+        success: false,
+        error: {
+          code: "UNAUTHORIZED",
+          message: "Authentication required",
+        },
+      };
+      return new Response(JSON.stringify(response), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     // Parse request body
     const body = await request.json();
 
@@ -49,7 +66,7 @@ export const POST: APIRoute = async ({ request }) => {
       .from("decks")
       .select("id")
       .eq("id", deck_id)
-      .eq("user_id", DEFAULT_USER_ID)
+      .eq("user_id", user.id)
       .single();
 
     if (deckError || !deck) {
