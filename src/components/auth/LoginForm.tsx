@@ -14,7 +14,7 @@ interface LoginFormProps {
   redirectTo?: string;
 }
 
-export default function LoginForm({ redirectTo = "/dashboard" }: LoginFormProps) {
+export default function LoginForm({ redirectTo = "/decks" }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);

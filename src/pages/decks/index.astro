@@ -1,0 +1,131 @@
+---
+/**
+ * Decks Listing Page
+ * Route: /decks
+ * Purpose: Display all user decks with at least one test deck
+ */
+
+import Layout from "@/layouts/Layout.astro";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+// Disable prerendering for authenticated pages
+export const prerender = false;
+
+// Get authenticated user from middleware
+const user = Astro.locals.user;
+
+// This page requires authentication (middleware handles redirect)
+if (!user) {
+  return Astro.redirect("/auth/login");
+}
+
+// Fetch user's decks from database
+const supabase = Astro.locals.supabase;
+const { data: userDecks } = await supabase
+  .from("decks")
+  .select("*")
+  .eq("user_id", user.id)
+  .order("created_at", { ascending: false });
+
+// Always ensure there's at least one test deck
+let decks = userDecks || [];
+
+// Check if test deck exists
+const hasTestDeck = decks.some((deck) => deck.name === "Test Deck");
+
+// If no test deck exists, create one
+if (!hasTestDeck) {
+  const { data: newTestDeck, error: createError } = await supabase
+    .from("decks")
+    .insert({
+      user_id: user.id,
+      name: "Test Deck",
+    })
+    .select()
+    .single();
+
+  if (newTestDeck && !createError) {
+    decks = [newTestDeck, ...decks];
+  }
+}
+
+// Count flashcards for each deck (optional enhancement)
+const decksWithCounts = await Promise.all(
+  decks.map(async (deck) => {
+    const { count } = await supabase
+      .from("flashcards")
+      .select("*", { count: "exact", head: true })
+      .eq("deck_id", deck.id);
+
+    return {
+      ...deck,
+      cardCount: count || 0,
+    };
+  })
+);
+---
+
+<Layout title="My Decks">
+  <div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-8 flex items-center justify-between">
+      <div>
+        <h1 class="text-4xl font-bold mb-2">My Decks</h1>
+        <p class="text-muted-foreground">
+          {user.email ? `Logged in as ${user.email}` : "Manage your flashcard decks"}
+        </p>
+      </div>
+      <Button>
+        <a href="/decks/new">Create New Deck</a>
+      </Button>
+    </div>
+
+    <!-- Decks Grid -->
+    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {
+        decksWithCounts.map((deck) => (
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle>{deck.name}</CardTitle>
+              <CardDescription>
+                {deck.cardCount} {deck.cardCount === 1 ? "card" : "cards"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div class="flex gap-2">
+                <Button variant="outline" className="flex-1">
+                  <a href={`/decks/${deck.id}`} class="w-full">
+                    View
+                  </a>
+                </Button>
+                <Button className="flex-1">
+                  <a href={`/decks/${deck.id}/generate`} class="w-full">
+                    Generate Cards
+                  </a>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))
+      }
+    </div>
+
+    <!-- Empty State (if somehow no decks exist) -->
+    {
+      decksWithCounts.length === 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>No Decks Yet</CardTitle>
+            <CardDescription>Create your first deck to get started</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button>
+              <a href="/decks/new">Create Your First Deck</a>
+            </Button>
+          </CardContent>
+        </Card>
+      )
+    }
+  </div>
+</Layout>

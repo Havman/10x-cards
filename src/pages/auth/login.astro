@@ -12,12 +12,12 @@ import LoginForm from "@/components/auth/LoginForm";
 export const prerender = false;
 
 // Get redirect parameter from query string
-const redirectTo = Astro.url.searchParams.get("redirect") || "/dashboard";
+const redirectTo = Astro.url.searchParams.get("redirect") || "/decks";
 
 // Check if user is already authenticated
 const user = Astro.locals.user;
 
-// Redirect to dashboard if already logged in
+// Redirect to decks if already logged in
 if (user) {
   return Astro.redirect(redirectTo);
 }

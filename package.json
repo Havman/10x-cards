@@ -73,7 +73,7 @@
     "lint-staged": "15.5.0",
     "msw": "^2.12.3",
     "prettier-plugin-astro": "0.14.1",
-    "supabase": "^2.51.0",
+    "supabase": "^2.65.7",
     "typescript-eslint": "8.28.0",
     "vitest": "^4.0.14"
   },

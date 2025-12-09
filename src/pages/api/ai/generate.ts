@@ -5,7 +5,6 @@
 
 import type { APIRoute } from "astro";
 import { z } from "zod";
-import { DEFAULT_USER_ID } from "../../../db/supabase.client";
 import { AIGenerationService, AIGenerationError } from "../../../lib/services/ai-generation.service";
 import { AIGenerateRequestSchema } from "../../../lib/validation/ai-generation.schemas";
 import type { ApiErrorResponse, ApiSuccessResponse, AIGenerateResponse } from "../../../types";
@@ -97,8 +96,26 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     const { text, deck_id, max_cards = 10 } = validationResult.data;
 
-    // Use DEFAULT_USER_ID until authentication is implemented
-    const userId = DEFAULT_USER_ID;
+    // Get authenticated user from middleware
+    const user = locals.user;
+
+    if (!user) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: {
+            code: ErrorCodes.UNAUTHORIZED,
+            message: "Authentication required",
+          },
+        } satisfies ApiErrorResponse),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const userId = user.id;
 
     // Initialize AI Generation Service with real API key
     const aiService = new AIGenerationService(supabase, userId, openRouterApiKey);

@@ -5,7 +5,6 @@
 
 import type { APIRoute } from "astro";
 
-import { DEFAULT_USER_ID } from "../../../db/supabase.client";
 import type { ApiErrorResponse, ApiSuccessResponse, AIUsageResponse } from "../../../types";
 import { ErrorCodes } from "../../../types";
 
@@ -34,8 +33,26 @@ export const GET: APIRoute = async ({ locals }) => {
       );
     }
 
-    // Use DEFAULT_USER_ID until authentication is implemented
-    const userId = DEFAULT_USER_ID;
+    // Get authenticated user from middleware
+    const user = locals.user;
+
+    if (!user) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: {
+            code: ErrorCodes.UNAUTHORIZED,
+            message: "Authentication required",
+          },
+        } satisfies ApiErrorResponse),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const userId = user.id;
 
     // Get today's date range (start of day to end of day)
     const today = new Date();

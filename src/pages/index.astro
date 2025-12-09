@@ -1,8 +1,28 @@
 ---
-import Welcome from "../components/Welcome.astro";
-import Layout from "../layouts/Layout.astro";
+/**
+ * Login Page (Main Page)
+ * Route: /
+ * Purpose: US-002 - User Login
+ */
+
+import AuthLayout from "@/layouts/AuthLayout.astro";
+import LoginForm from "@/components/auth/LoginForm";
+
+// Disable prerendering for authentication pages
+export const prerender = false;
+
+// Get redirect parameter from query string
+const redirectTo = Astro.url.searchParams.get("redirect") || "/decks";
+
+// Check if user is already authenticated
+const user = Astro.locals.user;
+
+// Redirect to decks if already logged in
+if (user) {
+  return Astro.redirect(redirectTo);
+}
 ---
 
-<Layout>
-  <Welcome />
-</Layout>
+<AuthLayout title="Welcome Back" description="Log in to your account">
+  <LoginForm redirectTo={redirectTo} client:load />
+</AuthLayout>
